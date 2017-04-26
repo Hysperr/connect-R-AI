@@ -1,6 +1,10 @@
+import java.util.InputMismatchException;
+import java.util.Random;
 import java.util.Scanner;
 
+
 public class Board {
+    public enum GameType { AI, HUMAN, PRNG }
     private char [][] board;
     private int connect;
     private int currentPlayer;
@@ -37,6 +41,7 @@ public class Board {
             }
             System.out.println();
         }
+        System.out.println();
     }
 
     public void printDimensions() {
@@ -47,10 +52,58 @@ public class Board {
         currentPiece = (currentPiece == 'x') ? 'o' : 'x';
     }
 
-    public void insertPiece(Scanner scanner) {
+    private void switchCurrentPlayer() {
+        currentPlayer = (currentPlayer == 1) ? 2 : 1;
+    }
+
+    public char[][] getBoardActual() { return board; }
+
+    public int getWidth() {
+        return board[0].length;
+    }
+
+    public int getHeight() {
+        return board.length;
+    }
+
+    public long getMovesMade() {
+        return movesMade;
+    }
+
+    public boolean getIsDone() { return isDone; }
+
+    public int getConnect() {
+        return connect;
+    }
+
+    public int getCurrentPlayer() {
+        return currentPlayer;
+    }
+
+    public char getOpponentPiece() {
+        return (currentPiece == 'x') ? 'o' : 'x';
+    }
+
+    public void insertPiece(GameType gameType) {
         boolean flag = false;
+        int col;
+
         while (true) {
-            int col = scanner.nextInt();
+
+            switch(gameType) {
+                case AI:
+                    col = 2;
+                    break;
+                case PRNG:
+                    col = new Random().nextInt(board[0].length);
+                    break;
+                case HUMAN:
+                    col = validateHumanInsert();
+                    break;
+                default:
+                    throw new IllegalArgumentException("I don't have an option for " + gameType);
+            }
+
             for (int i = board.length - 1; i >= 0; i--) {
                 if (board[i][col] == '-') {
                     board[i][col] = currentPiece;
@@ -63,20 +116,31 @@ public class Board {
                     break;
                 }
             }
-            if (flag) break;
+            if (flag) {
+                checkWin();
+                break;
+            }
+            else System.out.println("Column " + col + " already filled. Try again. Still player " + currentPlayer + "'s turn.\n");
         }
+
+        System.out.println("Player " + currentPlayer + " placed '" + pPie + "' in col " + col);
+        switchCurrentPlayer();
+
     }
 
-    public boolean isDone() {
-        if (movesMade == board.length * board[0].length)
+    private boolean checkWin() {
+        if ((movesMade == board.length * board[0].length)
+                || checkHorizontal()
+                || checkDiagonal()
+                || checkVertical()) {
+            isDone = true;
             return true;
-        if (checkHorizontal())
-            return true;
-        if (checkDiagonal())
-            return true;
-        if (checkVertical())
-            return true;
+        }
         return false;
+    }
+
+    private void printWinnerStats() {
+        // print winner stats if checkwin() true, not in deep insert
     }
 
     private boolean checkHorizontal() {
@@ -173,14 +237,62 @@ public class Board {
         return false;
     }
 
+    private int validateHumanInsert() {
+        int a;
+        while (true) {
+            try {
+                a = new Scanner(System.in).nextInt();
+                if (a >= 0 && a < board[0].length)
+                    return a;
+                else
+                    System.out.println("Invalid index. Must be between [0 and " + (board[0].length - 1) + "]");
+            }
+            catch (InputMismatchException e) {
+                System.out.println("That's not a number.");
+            }
+        }
+    }
+
+    public boolean isColumnFilled(int col) {
+        for (int i = board.length - 1; i >= 0; i--) {
+            if (board[i][col] == '-')
+                return false;
+        }
+        return true;
+    }
+
+    public void deepInsert(int col) {
+        boolean flag = false;
+        for (int i = board.length - 1; i >= 0; i--) {
+            if (board[i][col] == '-') {
+                board[i][col] = currentPiece;
+                pPie = currentPiece;
+                switchPiece();
+                flag = true;
+                movesMade++;
+                pCol = col;
+                pRow = i;
+                break;
+            }
+        }
+        checkWin();
+        System.out.println("Player " + currentPlayer + " placed '" + pPie + "' in col " + col);     // for debug
+        switchCurrentPlayer();
+
+    }
 
     public static void main(String[] args) {
         Scanner k = new Scanner(System.in);
         Board board = new Board(3, 3, 3, 1);
         board.printBoard();
-        while (!board.isDone()) {
-            board.insertPiece(k);
+        while (true) {
+            board.insertPiece(GameType.HUMAN);
             board.printBoard();
+            if (board.getIsDone()) break;
+
+            board.insertPiece(GameType.PRNG);
+            board.printBoard();
+            if (board.getIsDone()) break;
         }
     }
 
