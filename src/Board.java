@@ -297,31 +297,7 @@ public class Board {
         switchCurrentPlayer();
         return value;
     }
-
-
-//    public double calculate_deep_dive_heuristic() {
-//        switchCurrentPlayer();
-//        char blank = '-';
-//        double value = 0;
-//        for (int i = 0; i < board.length; i++) {
-//            int rowinarow = 0;
-//            for (int j = 0; j < board[0].length; j++) {
-//                if (board[i][j] == currentPiece || board[i][j] == blank) {
-//                    rowinarow++;
-//                    value = Math.pow(2, rowinarow);
-//                }
-//                else rowinarow = 0;
-//
-//                if (board[i][j] == currentPiece) value += 1.0;
-//                else if (board[i][j] == blank) value += 0;
-//                else value += -1;
-//            }
-//        }
-//
-//
-//        switchCurrentPlayer();
-//        return value;
-//    }
+    
 
     public static void main(String[] args) {
         Scanner k = new Scanner(System.in);
