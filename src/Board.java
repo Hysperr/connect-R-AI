@@ -11,6 +11,7 @@ public class Board {
     private boolean isDone;
     private int movesMade;
     private char currentPiece;
+    private double heuristic;
     private int pRow;
     private int pCol;
     private char pPie;
@@ -21,6 +22,7 @@ public class Board {
         this.connect = connect;
         this.isDone = false;
         this.movesMade = 0;
+        this.heuristic = 0;
         board = createBoard(row, col);
     }
 
@@ -55,6 +57,10 @@ public class Board {
     private void switchCurrentPlayer() {
         currentPlayer = (currentPlayer == 1) ? 2 : 1;
     }
+
+    public void setHeuristic(double heuristic) { this.heuristic = heuristic; }
+
+    public double getHeuristic() { return heuristic; }
 
     public char[][] getBoardActual() { return board; }
 
@@ -92,7 +98,9 @@ public class Board {
 
             switch(gameType) {
                 case AI:
-                    col = 2;
+                    Node node = new Node(this);
+                    node.operationDeepDive(2);
+                    col = node.getBestMove();
                     break;
                 case PRNG:
                     col = new Random().nextInt(board[0].length);
@@ -276,10 +284,44 @@ public class Board {
             }
         }
         checkWin();
-        System.out.println("Player " + currentPlayer + " placed '" + pPie + "' in col " + col);     // for debug
+//        System.out.println("Player " + currentPlayer + " placed '" + pPie + "' in col " + col);     // for debug
         switchCurrentPlayer();
-
     }
+
+
+    public double calculate_deep_dive_heuristic() {
+        switchCurrentPlayer();
+        double value = new  Random().nextInt(100);
+
+
+        switchCurrentPlayer();
+        return value;
+    }
+
+
+//    public double calculate_deep_dive_heuristic() {
+//        switchCurrentPlayer();
+//        char blank = '-';
+//        double value = 0;
+//        for (int i = 0; i < board.length; i++) {
+//            int rowinarow = 0;
+//            for (int j = 0; j < board[0].length; j++) {
+//                if (board[i][j] == currentPiece || board[i][j] == blank) {
+//                    rowinarow++;
+//                    value = Math.pow(2, rowinarow);
+//                }
+//                else rowinarow = 0;
+//
+//                if (board[i][j] == currentPiece) value += 1.0;
+//                else if (board[i][j] == blank) value += 0;
+//                else value += -1;
+//            }
+//        }
+//
+//
+//        switchCurrentPlayer();
+//        return value;
+//    }
 
     public static void main(String[] args) {
         Scanner k = new Scanner(System.in);
@@ -290,11 +332,10 @@ public class Board {
             board.printBoard();
             if (board.getIsDone()) break;
 
-            board.insertPiece(GameType.PRNG);
+            board.insertPiece(GameType.AI);
             board.printBoard();
             if (board.getIsDone()) break;
         }
     }
 
 }
-
