@@ -1,6 +1,4 @@
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.Stack;
+import java.util.*;
 
 public class Node {
     private static int totalNumNodes = 0;
@@ -12,14 +10,22 @@ public class Node {
     private boolean isMax;
     private int numChildren;
 
+    /**
+     * Copy constructor
+     * @param aboard
+     */
     public Node(Board aboard) {
         arrayList = new ArrayList<>();
         board_obj_field = aboard;
         totalNumNodes++;
         id = totalNumNodes;
-        this.id = totalNumNodes;
+//        this.id = totalNumNodes;
     }
 
+    /**
+     * Deep copy constructor
+     * @param anode
+     */
     public Node(Node anode) {
         this.arrayList = new ArrayList<>();
         this.isMax = anode.isMax;
@@ -78,7 +84,44 @@ public class Node {
         }
     }
 
+    public void createMiniMaxTree(int depth) {
+        if (board_obj_field.getIsDone() || depth == 0) {
+            return;
+        }
+        else {
+            for (int i = 0; i < board_obj_field.getWidth(); i++) {
+                if (board_obj_field.isColumnFilled(i)) continue;
+                Node sub = new Node(this);
+                sub.isMax = !sub.isMax;
+                sub.bestMove = i;
+                this.bestMove = sub.bestMove;
+                sub.board_obj_field.deepInsert(i);
+                this.attach(sub);
 
+                if (depth == 1 || sub.board_obj_field.getIsDone()) {
+                    // heuristic calculation
+                    sub.board_obj_field.setHeuristic(sub.board_obj_field.calculate_deep_dive_heuristic());
+                }
+
+                /** Recursion */
+                sub.createMiniMaxTree(depth - 1);
+
+                // 'this' is calling node
+
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+    /*
     public ArrayList<Integer> operationDeepDive(ArrayList<Integer> aL, int depth) {
         if (this.board_obj_field.getIsDone() || depth == 0) {
             return aL;
@@ -131,4 +174,34 @@ public class Node {
             }
         }
     }
+    */
+
+    /**
+     * BFS print MiniMaxTree
+     * @param root
+     */
+    public static void printMiniMaxTree(Node root) {
+        System.out.println("Printing MiniMax Tree BREADTH FIRST");
+        int count = 0;
+        Queue<Node> queue = new LinkedList<>();
+        queue.add(root);
+        while (!queue.isEmpty()) {
+            count++;
+            Node tmp = queue.peek();
+            tmp.printNode();
+            queue.poll();
+            if (tmp.getNumChildren() != 0) {
+                for (Node a : tmp.getArrayList()) {
+                    queue.add(a);
+                }
+            }
+        }
+        System.out.println("Total nodes: " + count);
+
+    }
+
+
+
+
+
 }
