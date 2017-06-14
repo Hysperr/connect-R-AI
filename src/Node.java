@@ -2,12 +2,11 @@ import java.util.*;
 
 public class Node {
     private static int totalNumNodes = 0;
-    public  static int DEPTH = 2;
     private ArrayList<Node> arrayList;
     private Board board_obj_field;
     private int id;
     private int bestMove;
-    private boolean isMax;
+    private boolean isMax = true;
     private int numChildren;
 
     /**
@@ -43,22 +42,11 @@ public class Node {
         this.id = totalNumNodes;
     }
 
-    public void attach(Node nn) {
-        arrayList.add(nn);
-        numChildren++;
-    }
-    public void printNode() {
-        board_obj_field.printBoard();
-    }
-    public void printImmediateChildren() {
-        for (Node a : getArrayList())
-            a.printNode();
-    }
+    /** getters */
+
     public int getId() { return id; }
 
-    public int getBestMove() {
-        return bestMove;
-    }
+    public int getBestMove() { return bestMove; }
 
     public int getNumChildren() { return numChildren; }
 
@@ -66,8 +54,47 @@ public class Node {
 
     public Board getBoard_obj_field() { return board_obj_field; }
 
+    /** member functions */
 
-    public void opDD(int depth) {
+    public void attach(Node nn) {
+        arrayList.add(nn);
+        numChildren++;
+    }
+
+    /**
+     * Prints all node's contents.
+     */
+    public void printNode() {
+        for (int i = 0; i < board_obj_field.getHeight(); i++) {
+            for (int j = 0; j < board_obj_field.getWidth(); j++) {
+                System.out.print(board_obj_field.getBoardActual()[i][j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println("Is max? " + isMax +
+                "\nNum children: " + numChildren +
+                "\nBest move: " + bestMove +
+                "\nIs done? " + board_obj_field.getIsDone() +
+                "\nHeuristic: " + board_obj_field.getHeuristic() +
+                '\n');
+    }
+
+    /**
+     * Print the immediate children of calling node.
+     * Calls <code>printNode()</code>
+     */
+    public void printImmediateChildren() {
+        System.out.println("My children are...");
+        for (Node a : getArrayList())
+            a.printNode();
+    }
+
+    private void setDefaultNodeHeuristic() {
+        if (isMax) board_obj_field.setHeuristic(Integer.MIN_VALUE);
+        else board_obj_field.setHeuristic(Integer.MAX_VALUE);
+    }
+
+/*    public void opDD(int depth) {
         Stack<Node> stack = new Stack<>();
         stack.push(this);
         for (int i = 0; i < board_obj_field.getWidth(); i++) {
@@ -82,9 +109,13 @@ public class Node {
 
             }
         }
-    }
+    }*/
 
-    public void createMiniMaxTree(int depth) {
+/*    *//**
+     * Creates MiniMax Tree for AI agent to "look ahead for best move"
+     * @param depth
+     *//*
+    public void createMiniMaxTree_1(int depth) {
         if (board_obj_field.getIsDone() || depth == 0) {
             return;
         }
@@ -94,7 +125,43 @@ public class Node {
                 Node sub = new Node(this);
                 sub.isMax = !sub.isMax;
                 sub.bestMove = i;
-                this.bestMove = sub.bestMove;
+//                this.bestMove = sub.bestMove;
+                sub.board_obj_field.deepInsert(i);
+                this.attach(sub);
+
+                if (depth == 1 || sub.board_obj_field.getIsDone()) {
+                    // heuristic calculation
+                    sub.board_obj_field.setHeuristic(sub.board_obj_field.calculate_deep_dive_heuristic());
+                }
+
+                *//** Recursion, bringing best move upwards through tree *//*
+                sub.createMiniMaxTree_1(depth - 1);
+
+                // 'this' is calling node, 'sub' is child
+
+            }
+        }
+    }*/
+
+
+
+    /**
+     * Creates MiniMax Tree for AI agent to "look ahead for best move"
+     * @param depth
+     */
+    public void createMiniMaxTree(int depth, int count) {
+        if (board_obj_field.getIsDone() || depth == 0) {
+            return;
+        }
+        else {
+            for (int i = 0; i < board_obj_field.getWidth(); i++) {
+                this.setDefaultNodeHeuristic();
+                if (board_obj_field.isColumnFilled(i)) continue;
+                Node sub = new Node(this);
+                sub.isMax = !sub.isMax;
+                sub.setDefaultNodeHeuristic();
+//                sub.bestMove = i;
+//                this.bestMove = sub.bestMove;
                 sub.board_obj_field.deepInsert(i);
                 this.attach(sub);
 
@@ -104,16 +171,35 @@ public class Node {
                 }
 
                 /** Recursion */
-                sub.createMiniMaxTree(depth - 1);
+                sub.createMiniMaxTree(depth - 1, count + 1);
 
-                // 'this' is calling node
+                // 'this' is calling node, 'sub' is child
 
+                if (this.isMax) {
+                    if (sub.board_obj_field.getHeuristic() > this.board_obj_field.getHeuristic()) {
+                        this.board_obj_field.setHeuristic(sub.board_obj_field.getHeuristic());
+                    }
+                }
+                else {
+                    if (sub.board_obj_field.getHeuristic() < this.board_obj_field.getHeuristic()) {
+                        this.board_obj_field.setHeuristic(sub.board_obj_field.getHeuristic());
+                    }
+                }
+            }
+
+            // if count == 0, 'this' is the root and max level. go through all children, best move is
+            // child with highest value.
+            if (count == 0) {
+                for (int k = 0; k < this.arrayList.size(); k++) {
+                    if (this.arrayList.get(k).board_obj_field.getHeuristic() > this.board_obj_field.getHeuristic()) {
+                        this.board_obj_field.setHeuristic(this.arrayList.get(k).board_obj_field.getHeuristic());
+                        this.bestMove = k;
+                    }
+                }
+                System.out.println("THE BEST MOVE IS " + this.bestMove);
             }
         }
     }
-
-
-
 
 
 
@@ -177,7 +263,7 @@ public class Node {
     */
 
     /**
-     * BFS print MiniMaxTree
+     * BFS print MiniMaxTree. Root is always printed first.
      * @param root
      */
     public static void printMiniMaxTree(Node root) {
@@ -196,12 +282,6 @@ public class Node {
                 }
             }
         }
-        System.out.println("Total nodes: " + count);
-
+        System.out.println("TOTAL NODES: " + count);
     }
-
-
-
-
-
 }

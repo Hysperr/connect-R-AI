@@ -99,7 +99,7 @@ public class Board {
             switch(gameType) {
                 case AI:
                     Node node = new Node(this);
-                    node.createMiniMaxTree(2);
+                    node.createMiniMaxTree(2, 0);
                     Node.printMiniMaxTree(node);
                     col = node.getBestMove();
                     break;
@@ -291,12 +291,11 @@ public class Board {
 
 
     public double calculate_deep_dive_heuristic() {
-        switchCurrentPlayer();
-        double value = new  Random().nextInt(100);
+//        switchCurrentPlayer();
+        return new Random().nextInt(100);
 
 
-        switchCurrentPlayer();
-        return value;
+//        switchCurrentPlayer();
     }
 
 
